@@ -1,8 +1,8 @@
 (function($)
 {
   $(document).ready(function(){
-    var widgets = $("ul.cmsfield-url-type");
-    widgets.find("input").change(onUrlTypeChange);
+    var widgets = $("ul.any_urlfield-url_type");
+    widgets.find("input").live('change', onUrlTypeChange);
 
     // Apply by default
     widgets.each(function(){ updatePanels($(this)); });
@@ -11,7 +11,7 @@
 
   function onUrlTypeChange(event)
   {
-    var widget = $(this).parent().closest('.cmsfield-url-type');
+    var widget = $(this).parent().closest('.any_urlfield-url_type');
     updatePanels(widget);
   }
 
@@ -20,7 +20,7 @@
     var inputs = widget.find('input');
     inputs.each(function(){
       var slugvalue = this.value.replace(/[^a-z0-9-_]/, '');
-      var pane = widget.siblings(".cmsfield-url-" + slugvalue);
+      var pane = widget.siblings(".any_urlfield-url-" + slugvalue);
       pane[ this.checked ? "show" : "hide" ]();
     });
   }

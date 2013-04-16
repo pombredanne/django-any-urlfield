@@ -1,6 +1,7 @@
 # Windows note: folders should not end with a slash
 include AUTHORS
 include README.rst
+include CHANGES.rst
 include LICENSE
-recursive-include cmsfields/locale *.po *.mo
-recursive-include cmsfields/templates *.html
+recursive-include any_urlfield/static *.js
+recursive-include any_urlfield/locale *.po *.mo

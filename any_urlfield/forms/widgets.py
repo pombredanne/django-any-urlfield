@@ -1,30 +1,28 @@
 """
-Custom widgets used by the CMS form fields.
+Custom widgets used by the URL form fields.
 """
-import mimetypes
 import django
 from django.contrib import admin
-from django.contrib.admin.widgets import ForeignKeyRawIdWidget, AdminFileWidget
+from django.contrib.admin.widgets import ForeignKeyRawIdWidget
 from django.db.models.fields.related import ManyToOneRel
 from django.forms import widgets
 from django.forms.util import flatatt
-from django.forms.widgets import RadioFieldRenderer, ClearableFileInput
+from django.forms.widgets import RadioFieldRenderer
 from django.template.defaultfilters import slugify
-from django.template.loader import render_to_string
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 
 
-class HorizonatalRadioFieldRenderer(RadioFieldRenderer):
+class HorizontalRadioFieldRenderer(RadioFieldRenderer):
     """
-    Render a :class:`~django.forms.widgets.RadioSelect` horizontally in the Django admin interface.
+    Render a :class:`~django.forms.RadioSelect` horizontally in the Django admin interface.
 
     This produces a similar layout like the ``radio_fields = {'field': admin.HORIZONTAL}`` code does in the admin interface.
-    It can be used as argument for the :class:`~django.forms.widgets.RadioSelect` widget:
+    It can be used as argument for the :class:`~django.forms.RadioSelect` widget:
 
     .. code-block:: python
 
-        widget = widgets.RadioSelect(choices=choices, renderer=HorizonatalRadioFieldRenderer)
+        widget = widgets.RadioSelect(choices=choices, renderer=HorizontalRadioFieldRenderer)
     """
     def __init__(self, name, value, attrs, choices):
         extraclasses = 'radiolist inline'
@@ -33,7 +31,7 @@ class HorizonatalRadioFieldRenderer(RadioFieldRenderer):
         else:
             attrs['class'] = extraclasses
 
-        super(HorizonatalRadioFieldRenderer, self).__init__(name, value, attrs, choices)
+        super(HorizontalRadioFieldRenderer, self).__init__(name, value, attrs, choices)
 
     def render(self):
         return mark_safe(u'<ul%s>\n%s\n</ul>' % (
@@ -42,13 +40,13 @@ class HorizonatalRadioFieldRenderer(RadioFieldRenderer):
         )
 
 
-class CmsUrlWidget(widgets.MultiWidget):
+class AnyUrlWidget(widgets.MultiWidget):
     """
     The URL widget, rendering the URL selector.
     """
 
     class Media:
-        js = ('cmsfields/cmsurlfield.js',)
+        js = ('any_urlfield/any_urlfield.js',)
 
 
     def __init__(self, url_type_registry, attrs=None):
@@ -56,7 +54,7 @@ class CmsUrlWidget(widgets.MultiWidget):
 
         # Expose sub widgets for form field.
         self.url_type_registry = url_type_registry
-        self.url_type_widget = widgets.RadioSelect(choices=type_choices, attrs={'class': 'cmsfield-url-type'}, renderer=HorizonatalRadioFieldRenderer)
+        self.url_type_widget = widgets.RadioSelect(choices=type_choices, attrs={'class': 'any_urlfield-url_type'}, renderer=HorizontalRadioFieldRenderer)
         self.url_widgets = []
 
         # Combine to list, ensure order of values list later.
@@ -77,19 +75,19 @@ class CmsUrlWidget(widgets.MultiWidget):
         subwidgets.insert(0, self.url_type_widget)
 
         # init MultiWidget base
-        super(CmsUrlWidget, self).__init__(subwidgets, attrs=attrs)
+        super(AnyUrlWidget, self).__init__(subwidgets, attrs=attrs)
 
 
     def decompress(self, value):
         # Split the value to a dictionary with key per prefix.
-        # value is a CmsUrlValue object
+        # value is a AnyUrlValue object
         result = [None]
         values = {}
         if value is None:
             values['http'] = ''
             result[0] = 'http'
         else:
-            # Expand the CmsUrlValue to the array of widget values.
+            # Expand the AnyUrlValue to the array of widget values.
             # This is the reason, the widgets are ordered by ID; to make this easy.
             result[0] = value.type_prefix
             if value.type_prefix == 'http':
@@ -115,7 +113,7 @@ class CmsUrlWidget(widgets.MultiWidget):
         # Wrap remaining options in <p> for scripting.
         for i, widget_html in enumerate(rendered_widgets):
             prefix = slugify(urltypes[i].prefix)  # can use [i], same order of adding items.
-            output.append(u'<p class="cmsfield-url-{0}" style="clear:left">{1}</p>'.format(prefix, widget_html))
+            output.append(u'<p class="any_urlfield-url-{0}" style="clear:left">{1}</p>'.format(prefix, widget_html))
 
         return u''.join(output)
 
@@ -147,28 +145,3 @@ class SimpleRawIdWidget(ForeignKeyRawIdWidget):
             if admin_site is None:
                 admin_site = admin.site
             super(SimpleRawIdWidget, self).__init__(rel=rel, admin_site=admin_site, attrs=attrs, using=using)
-
-
-class ImagePreviewWidget(AdminFileWidget):
-    """
-    An :class:`~django.forms.FileInput` widget that also displays a preview of the image.
-    """
-    template_with_initial = u'%(clear_template)s</p><p>%(input_text)s: %(input)s'
-
-    def render(self, name, value, attrs=None):
-        is_image = False
-        if value:
-            (mime_type, encoding) = mimetypes.guess_type(value.path)
-            is_image = mime_type and mime_type.startswith('image/')
-
-        # Render different field for replacing
-        input_field = super(ImagePreviewWidget, self).render(name, value, attrs)
-        if not value:
-            return input_field
-        else:
-            return render_to_string("cmsfields/fileinput/update.html", {
-                'value': value,
-                'is_image': is_image,
-                'input_field': input_field,
-                'input_text': self.input_text,
-            })
