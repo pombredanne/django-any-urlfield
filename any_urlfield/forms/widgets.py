@@ -47,6 +47,7 @@ class AnyUrlWidget(widgets.MultiWidget):
 
     class Media:
         js = ('any_urlfield/any_urlfield.js',)
+        css = {'all': ('any_urlfield/any_urlfield.css',)}
 
 
     def __init__(self, url_type_registry, attrs=None):
@@ -102,6 +103,12 @@ class AnyUrlWidget(widgets.MultiWidget):
         return result
 
 
+    def _has_changed(self, initial, data):
+        if initial is None:
+            initial = [u'http', u'', u'', u'']
+        return super(AnyUrlWidget, self)._has_changed(initial, data)
+
+
     def format_output(self, rendered_widgets):
         """
         Custom rendering of the widgets.
@@ -136,7 +143,11 @@ class SimpleRawIdWidget(ForeignKeyRawIdWidget):
         """
         Instantiate the class.
         """
-        rel = ManyToOneRel(model, model._meta.pk.name, limit_choices_to=limit_choices_to)
+        if django.VERSION >= (1, 6, 0):
+            rel = ManyToOneRel(None, model, model._meta.pk.name, limit_choices_to=limit_choices_to)
+        else:
+            rel = ManyToOneRel(model, model._meta.pk.name, limit_choices_to=limit_choices_to)
+
         if django.VERSION < (1,4):
             super(SimpleRawIdWidget, self).__init__(rel=rel, attrs=attrs, using=using)
         else:

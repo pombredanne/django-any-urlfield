@@ -1,3 +1,35 @@
+Version 1.0.8 (dev)
+-------------------
+
+* Use ``long()`` for ID's, not ``int()``.
+
+
+Version 1.0.7
+-------------
+
+* Fix using this widget with Django 1.6 alpha 1
+
+
+Version 1.0.5
+-------------
+
+* Fix errors during south migration
+* Fix errors when deleting rows in an inline formset which uses an ``AnyUrlField``.
+
+
+Version 1.0.4
+-------------
+
+* Fix https URL support
+
+
+Version 1.0.3
+-------------
+
+* Fix change detection, to support formsets and admin inlines.
+* Fix widget alignment within a ``TabularInline``.
+
+
 Version 1.0.2
 -------------
 
